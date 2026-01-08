@@ -13,7 +13,7 @@ const __dirname = path.resolve();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json); //middleware to get the data, req.body
+app.use(express.json()); //middleware to get the data, req.body
 
 app.use("/api/auth", authRoutes);
 
