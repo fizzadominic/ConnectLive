@@ -4,7 +4,7 @@ import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
-
+// signup method
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -61,6 +61,38 @@ export const signup = async (req, res) => {
   }
 };
 
+// login method
 export const login = async (req, res) => {
-  res.send("login endpoint");
+  const {email, password}  = req.body;
+
+  // check is user exits or not
+  try{ 
+    const user = await User.findOne({email});
+    if(!user) return res.status(400).json({message:"Invalid credentials."});
+    
+    const isPasswordCorrect = await bcrypt.compare(password, user.password)
+    if(!isPasswordCorrect) return res.status(400).json({message:"Invalid credentials."});
+
+    generateToken(user._id, res);
+
+    res.status(200).json({
+      _id : user._id,
+      name : user.fullName,
+      email : user.email,
+      profilePic : user.profilePic
+    });
+
+
+
+  }catch(error){
+    console.error("Error in the login controller", error);
+    res.send(500).json({message:"Invalid server error"});
+  }
+};
+
+
+// logout method , get rid off cokkies
+export const logout = ( _, res) => {
+  res.cookie("jwt", "",{ maxAge : 0});
+  res.send(200).json({message:"Logged out successfully."});
 };
