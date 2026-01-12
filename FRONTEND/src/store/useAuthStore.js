@@ -6,6 +6,7 @@ export const useAuthStore = create((set) => ({
   authUser: null,
   isCheckingAuth: true,
   isSigningUp: false,
+  isLoggingIn : false,
 
   checkAuth: async () => {
     try {
@@ -23,7 +24,7 @@ export const useAuthStore = create((set) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.send });
+      set({ authUser: res.data });
       // toast
       toast.success("Account created successfully.");
     } catch (error) {
@@ -33,6 +34,35 @@ export const useAuthStore = create((set) => ({
       console.log("Signup error:", error);
     } finally {
       set({ isSigningUp: false });
+    }
+  },
+
+  login: async (data) => {
+    set({ isLoggingIn: true });
+    try {
+      const res = await axiosInstance.post("/auth/login", data);
+      set({ authUser: res.data });
+      // toast
+      toast.success("Logged in successfully.");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "An unexpected error occurred";
+      toast.error(errorMessage);
+      console.log("Signup error:", error);
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
+
+    logout: async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+      set({ authUser: null });
+      toast.success("Logged out successfully");
+      // get().disconnectSocket();
+    } catch (error) {
+      toast.error("Error logging out");
+      console.log("Logout error:", error);
     }
   },
 }));
