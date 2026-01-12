@@ -10,9 +10,9 @@ const router = express.Router();
 
 router.post("/signup", signup);
 
-router.get("/login", login);
+router.post("/login", login);
 
-router.get("/logout",logout);
+router.post("/logout",logout);
 
 // if user wants to update a profile they must be authenticated 
 router.put("/profile-update", protectRoute , updateProfile);

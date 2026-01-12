@@ -80,20 +80,25 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       _id: user._id,
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
     });
   } catch (error) {
     console.error("Error in the login controller", error);
-    res.send(500).json({ message: "Invalid server error" });
+    res.status(500).json({ message: "Invalid server error" });
   }
 };
 
 // logout method , get rid off cokkies
 export const logout = (_, res) => {
-  res.cookie("jwt", "", { maxAge: 0 });
-  res.send(200).json({ message: "Logged out successfully." });
+  try {
+    res.cookie("jwt", "", { maxAge: 0 });
+   
+    res.status(200).json({ message: "Logged out successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // profile update,
@@ -101,7 +106,7 @@ export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
     if (!profilePic)
-      return res.send(400).json({ message: "Profile pic is required." });
+      return res.status(400).json({ message: "Profile pic is required." });
 
     const userId = req.user._id;
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
@@ -111,9 +116,9 @@ export const updateProfile = async (req, res) => {
       { profilePic: uploadResponse.secure_url },
       { new: true }
     );
-    res.send(200).json(updatedUser);
+    res.status(200).json(updatedUser);
   } catch (error) {
     console.error("Error in the login controller", error);
-    res.send(500).json({ message: "Invalid server error" });
+    res.status(500).json({ message: "Invalid server error" });
   }
 };

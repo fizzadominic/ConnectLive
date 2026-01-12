@@ -6,4 +6,5 @@ import axios from "axios";
    withCredentials:true
 });
 
-export default axiosInstance
+export default axiosInstance;
+
