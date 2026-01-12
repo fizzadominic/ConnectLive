@@ -85,7 +85,7 @@ export const sendMessage = async (req, res) => {
 // create chatPartners
 export const  getChatsPartners =  async (req ,res) => {
   try {
-     const loggedInUserId = req.user._id;
+     const loggedInUserId = req.user._id.toString();
 
     //  find all the loggedin user either sender or reciver
      

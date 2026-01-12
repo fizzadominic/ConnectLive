@@ -118,7 +118,7 @@ export const updateProfile = async (req, res) => {
     );
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error in the login controller", error);
+    console.error("Error in the update Profile controller", error);
     res.status(500).json({ message: "Invalid server error" });
   }
 };

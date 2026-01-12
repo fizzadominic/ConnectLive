@@ -14,7 +14,8 @@ const __dirname = path.resolve();
 const PORT = ENV.PORT || 3000;
 
 // payload too large error
-app.use(express.json()); //middleware to get the data, req.body
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));//middleware to get the data, req.body
 app.use(
   cors({
     origin: "http://localhost:5173", // Give permission to your Frontend
