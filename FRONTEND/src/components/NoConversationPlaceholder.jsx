@@ -8,4 +8,4 @@ const NoConversationPlaceholder = () => {
   )
 }
 
-export default NoConversationPlaceholder;
+export default NoConversationPlaceholder

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import axiosInstance  from "../lib/axios";
+import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
@@ -27,7 +27,10 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get("/messages/contacts");
       set({ allContacts: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage =
+        error.response?.data?.message || "Could not load contacts";
+      toast.error(errorMessage);
+      console.error("Error in getAllContacts:", error);
     } finally {
       set({ isUsersLoading: false });
     }
@@ -38,14 +41,17 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get("/messages/chats");
       set({ chats: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const errorMessage =
+        error.response?.data?.message || "Error fetching chat partners";
+      toast.error(errorMessage);
+      console.error("Error in getMyChatPartners:", error);
     } finally {
       set({ isUsersLoading: false });
     }
   },
 
   getMessagesByUserId: async (userId) => {
-    set({ isMessagesLoading: true });
+    set({ isMessagesLoading: true, messages: [] }); //old messages to an empty array
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: res.data });
@@ -75,7 +81,10 @@ export const useChatStore = create((set, get) => ({
     set({ messages: [...messages, optimisticMessage] });
 
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser._id}`,
+        messageData
+      );
       set({ messages: messages.concat(res.data) });
     } catch (error) {
       // remove optimistic message on failure
@@ -91,7 +100,8 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
 
       const currentMessages = get().messages;
@@ -101,7 +111,9 @@ export const useChatStore = create((set, get) => ({
         const notificationSound = new Audio("/sounds/notification.mp3");
 
         notificationSound.currentTime = 0; // reset to start
-        notificationSound.play().catch((e) => console.log("Audio play failed:", e));
+        notificationSound
+          .play()
+          .catch((e) => console.log("Audio play failed:", e));
       }
     });
   },
