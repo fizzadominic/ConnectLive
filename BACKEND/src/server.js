@@ -7,14 +7,14 @@ import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import {app, server} from "./lib/socket.js";
 
-const app = express();
 const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
 // payload too large error
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ limit: "5mb", extended: true })); //middleware to get the data, req.body
 app.use(
   cors({
@@ -39,7 +39,7 @@ if (ENV.NODE_ENV === "development") {
   });
 }
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
   connectDB();
 });
