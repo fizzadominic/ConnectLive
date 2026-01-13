@@ -7,7 +7,7 @@ import { useAuthStore } from "../store/useAuthStore";
 const ChatsList = () => {
   const { getMyChatPartners, chats, isUsersLoading, setSelectedUser } =
     useChatStore();
-  const { onlineUsers } = useAuthStore();
+ const { onlineUsers = [] } = useAuthStore();
 
   useEffect(() => {
     getMyChatPartners();

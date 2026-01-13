@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
@@ -19,11 +20,14 @@ export const getMessagesByUserId = async (req, res) => {
   try {
     const myId = req.user._id;
     const { id: userToChatId } = req.params;
+    
+    const userToChatObjectId = new mongoose.Types.ObjectId(userToChatId);
 
+   
     const messages = await Message.find({
       $or: [
-        { senderId: myId, receiverId: userToChatId },
-        { senderId: userToChatId, receiverId: myId },
+        { senderId: myId, receiverId: userToChatObjectId },
+        { senderId: userToChatObjectId, receiverId: myId },
       ],
     });
 
