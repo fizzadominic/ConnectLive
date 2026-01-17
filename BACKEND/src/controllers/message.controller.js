@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getAllContacts = async (req, res) => {
   try {
@@ -72,11 +73,12 @@ export const sendMessage = async (req, res) => {
     });
 
     await newMessage.save();
-
-    // const receiverSocketId = getReceiverSocketId(receiverId);
-    // if (receiverSocketId) {
-    //   io.to(receiverSocketId).emit("newMessage", newMessage);
-    // }
+    
+    // send real time message if user is online using socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
@@ -112,5 +114,36 @@ export const  getChatsPartners =  async (req ,res) => {
        console.log("Error in chatPartner controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
     
+  }
+};
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { id: messageId } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // check if the user is the sender of the message
+    if (message.senderId.toString() !== userId.toString()) {
+      return res.status(401).json({ message: "Unauthorized to delete this message" });
+    }
+
+    await Message.findByIdAndDelete(messageId);
+
+    // notify receiver if they are online
+    const receiverSocketId = getReceiverSocketId(message.receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDeleted", messageId);
+    }
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
