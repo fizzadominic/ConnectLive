@@ -3,6 +3,7 @@ import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
+ 
 export const useChatStore = create((set, get) => ({
   allContacts: [],
   chats: [],
@@ -30,7 +31,7 @@ export const useChatStore = create((set, get) => ({
       const errorMessage =
         error.response?.data?.message || "Could not load contacts";
       toast.error(errorMessage);
-      console.error("Error in getAllContacts:", error);
+      console.log("Error in getAllContacts:", error);
     } finally {
       set({ isUsersLoading: false });
     }
@@ -44,7 +45,7 @@ export const useChatStore = create((set, get) => ({
       const errorMessage =
         error.response?.data?.message || "Error fetching chat partners";
       toast.error(errorMessage);
-      console.error("Error in getMyChatPartners:", error);
+      console.log("Error in getMyChatPartners:", error);
     } finally {
       set({ isUsersLoading: false });
     }
@@ -94,13 +95,28 @@ export const useChatStore = create((set, get) => ({
 }
   },
 
+  deleteMessage: async (messageId) => {
+    try {
+      await axiosInstance.delete(`/messages/${messageId}`);
+      set({
+        messages: get().messages.filter((m) => m._id !== messageId),
+      });
+      toast.success("Message deleted");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Could not delete message");
+    }
+  },
+
+
+  // listen to any incoming message
   subscribeToMessages: () => {
     const { selectedUser, isSoundEnabled } = get();
     if (!selectedUser) return;
 
-    const socket = useAuthStore.getState().socket;
+    const socket = useAuthStore.getState().socket; //listen for new events 
 
-    socket.on("newMessage", (newMessage) => {
+    socket?.on("newMessage", (newMessage) => {
+
       const isMessageSentFromSelectedUser =
         newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
@@ -109,7 +125,7 @@ export const useChatStore = create((set, get) => ({
       set({ messages: [...currentMessages, newMessage] });
 
       if (isSoundEnabled) {
-        const notificationSound = new Audio("/sounds/notification.mp3");
+        const notificationSound = new Audio("sounds/notifications.mp3");
 
         notificationSound.currentTime = 0; // reset to start
         notificationSound
@@ -117,10 +133,17 @@ export const useChatStore = create((set, get) => ({
           .catch((e) => console.log("Audio play failed:", e));
       }
     });
+
+    socket?.on("messageDeleted", (messageId) => {
+      set({
+        messages: get().messages.filter((m) => m._id !== messageId),
+      });
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("newMessage");
+    socket?.off("newMessage");
+    socket?.off("messageDeleted");
   },
 }));
